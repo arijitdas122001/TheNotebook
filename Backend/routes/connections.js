@@ -8,13 +8,14 @@ const mongoose=require('mongoose');
 const user = require('../models/userauth');
 const fetchuser=require('../middleware/getuser');
 const router = express.Router();
-const JWT_SECRET="Iamarijti@kfjkj";
+const dotenv=require('dotenv').config({path:"./views/env/config.env"});
+const secretkey=process.env.JWT_SECRET;
 router.get('/', (req, res) => {
   console.log("hello");
 })
 // checking for unique values of log in in user
 router.post('/api/auth/LogIn',
-  [body('name').isLength({ min: 4 }),
+  [body('user').isLength({ min: 4 }),
   body('password').isLength({ min: 5 })],
   async (req, res) => {
     const errors = validationResult(req);
@@ -23,19 +24,20 @@ router.post('/api/auth/LogIn',
     }
     try {
       // checking if a user is already exist or not
-      let user = await User.findOne({ name: req.body.name });
+      let user = await User.findOne({ user: req.body.user });
       if (user) {
-        res.status(400).send({ "error": "One User with the same  name already exist" });
+        res.status(400).send({ "error": "One User with the same  user already exist" });
       }
       const salt = bcrypt.genSaltSync(10);
      const secure = bcrypt.hashSync(req.body.password, salt);
       //creating the data base
       user= await User.create({
-        name: req.body.name,
+        user: req.body.user,
         password: secure,
         title: req.body.title,
         description: req.body.description
       });
+      console.log(user);
       // here I am seding the user through the auth token so I have to create a object
       const tobesentdata={
         user:{
@@ -43,20 +45,20 @@ router.post('/api/auth/LogIn',
         }
       }
       // res signing with my config file and giving me token for the user
-      const securetoken=jwt.sign(tobesentdata,JWT_SECRET);
+      const securetoken=jwt.sign(tobesentdata,secretkey);
       // sending request body when the call is successfull
       res.send({securetoken})  
     } catch (err) {
       console.log("ooops error occured", +err);
       res.status(500).send("Some Error occured");
     }
-  })
+  });
 
   // checking for the user is valid or not
   // we are using bcrypt here for checking authentication and signing it
   router.post('/api/auth/authei',
   // exists function is used for checking if in the form the password exists or not
-  [body('name').exists(),
+  [body('user').exists(),
   body('password').isLength({ min: 5 })],
   async (req, res) => {
     const errors = validationResult(req);
@@ -64,10 +66,10 @@ router.post('/api/auth/LogIn',
       return res.status(400).json({ errors: errors.array() });
     }
     // desctrucring form user input means res.body
-    const {name,password}=req.body;
+    const {user,password}=req.body;
     try {
       // finding if the user is present if not then return straigtly
-      let dbuser=await User.findOne({name})
+      let dbuser=await User.findOne({user})
       if(!dbuser){
         res.status(400).send({"error":"User doesn't match"});
       }
@@ -78,11 +80,11 @@ router.post('/api/auth/LogIn',
       }
       const tobesentdata={
         user:{
-          id:user.id
+          id:dbuseer.id
         }
       }
       // res signing with my config file and giving me token for the user
-      const securetoken=jwt.sign(tobesentdata, JWT_SECRET);
+      const securetoken=jwt.sign(tobesentdata, secretkey);
       res.json({securetoken});
     } catch (err) {
       console.log("ooops error occured", +err);
