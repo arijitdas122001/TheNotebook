@@ -10,12 +10,6 @@ const blogSchema = new Schema({
     type:String,
     require:'Please enter  your password'
 
-  },
-  title:{
-    type:String,
-  },
-  description:{
-    type:String
   }
 });
 //  to save the schema I have to make a model

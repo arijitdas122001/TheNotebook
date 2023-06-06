@@ -1,5 +1,5 @@
 var jwt = require('jsonwebtoken');
-const dotenv=require('dotenv').config({path:"./views/env/config.env"});
+const env=require('dotenv').config({path:"./views/env/config.env"});
 const secretkey=process.env.JWT_SECRET;
 
 const fetchuser = (req, res, next) => {
